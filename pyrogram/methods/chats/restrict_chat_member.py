@@ -1,21 +1,20 @@
-#  Pyrofork - Telegram MTProto API Client Library for Python
+#  Pyrogram - Telegram MTProto API Client Library for Python
 #  Copyright (C) 2017-present Dan <https://github.com/delivrance>
-#  Copyright (C) 2022-present Mayuri-Chan <https://github.com/Mayuri-Chan>
 #
-#  This file is part of Pyrofork.
+#  This file is part of Pyrogram.
 #
-#  Pyrofork is free software: you can redistribute it and/or modify
+#  Pyrogram is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU Lesser General Public License as published
 #  by the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  Pyrofork is distributed in the hope that it will be useful,
+#  Pyrogram is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with Pyrofork.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
 from typing import Union
@@ -84,23 +83,16 @@ class RestrictChatMember:
                     until_date=utils.datetime_to_timestamp(until_date),
                     send_messages=not permissions.can_send_messages,
                     send_media=not permissions.can_send_media_messages,
+                    send_stickers=not permissions.can_send_other_messages,
+                    send_gifs=not permissions.can_send_other_messages,
+                    send_games=not permissions.can_send_other_messages,
+                    send_inline=not permissions.can_send_other_messages,
                     embed_links=not permissions.can_add_web_page_previews,
                     send_polls=not permissions.can_send_polls,
                     change_info=not permissions.can_change_info,
                     invite_users=not permissions.can_invite_users,
                     pin_messages=not permissions.can_pin_messages,
                     manage_topics=not permissions.can_manage_topics,
-                    send_audios=not permissions.can_send_audios,
-                    send_docs=not permissions.can_send_docs,
-                    send_games=not permissions.can_send_games,
-                    send_gifs=not permissions.can_send_gifs,
-                    send_inline=not permissions.can_send_inline,
-                    send_photos=not permissions.can_send_photos,
-                    send_plain=not permissions.can_send_plain,
-                    send_roundvideos=not permissions.can_send_roundvideos,
-                    send_stickers=not permissions.can_send_stickers,
-                    send_videos=not permissions.can_send_videos,
-                    send_voices=not permissions.can_send_voices
                 )
             )
         )

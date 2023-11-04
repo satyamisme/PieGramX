@@ -18,19 +18,11 @@
 
 import inspect
 import re
-from typing import Callable, List, Pattern, Union
+from typing import Callable, Union, List, Pattern
 
 import pyrogram
 from pyrogram import enums
-from pyrogram.types import (
-    CallbackQuery,
-    InlineKeyboardMarkup,
-    InlineQuery,
-    Message,
-    ReplyKeyboardMarkup,
-    Story,
-    Update,
-)
+from pyrogram.types import Message, CallbackQuery, InlineQuery, InlineKeyboardMarkup, ReplyKeyboardMarkup, Update
 
 
 class Filter:
@@ -753,67 +745,6 @@ linked_channel = create(linked_channel_filter)
 
 # endregion
 
-# region forum_topic_closed_filter
-async def forum_topic_closed_filter(_, __, m: Message):
-    return bool(m.forum_topic_closed)
-
-forum_topic_closed = create(forum_topic_closed_filter)
-"""Filter service message for closed forum topics"""
-
-
-# endregion
-
-# region forum_topic_created_filter
-async def forum_topic_created_filter(_, __, m: Message):
-    return bool(m.forum_topic_created)
-
-forum_topic_created = create(forum_topic_created_filter)
-"""Filter service message for created forum topics"""
-
-
-# endregion
-
-# region forum_topic_edited_filter
-async def forum_topic_edited_filter(_, __, m: Message):
-    return bool(m.forum_topic_edited)
-
-forum_topic_edited = create(forum_topic_edited_filter)
-"""Filter service message for edited forum topics"""
-
-
-# endregion
-
-
-# region forum_topic_reopened_filter
-async def forum_topic_reopened_filter(_, __, m: Message):
-    return bool(m.forum_topic_reopened)
-
-forum_topic_reopened = create(forum_topic_reopened_filter)
-"""Filter service message for reopened forum topics"""
-
-
-# endregion
-
-# region general_topic_hidden_filter
-async def general_topic_hidden_filter(_, __, m: Message):
-    return bool(m.general_topic_hidden)
-
-general_forum_topic_hidden = create(general_topic_hidden_filter)
-
-"""Filter service message for hidden general forum topics"""
-
-
-# endregion
-
-# region general_topic_unhidden_filter
-async def general_topic_unhidden_filter(_, __, m: Message):
-    return bool(m.general_topic_unhidden)
-
-general_forum_topic_unhidden = create(general_topic_unhidden_filter)
-"""Filter service message for unhidden general forum topics"""
-
-
-# endregion
 
 # region command_filter
 def command(commands: Union[str, List[str]], prefixes: Union[str, List[str]] = "/", case_sensitive: bool = False):
@@ -987,33 +918,12 @@ class chat(Filter, set):
             else c for c in chats
         )
 
-    async def __call__(self, _, message: Union[Message, Story]):
-        if isinstance(message, Story):
-            return (
-                    message.sender_chat
-                    and (
-                        message.sender_chat.id in self
-                        or (
-                            message.sender_chat.username
-                            and message.sender_chat.username.lower() in self
-                        )
-                    )
-                ) or (
-                    message.from_user
-                    and (
-                        message.from_user.id in self
-                        or (
-                            message.from_user.username
-                            and message.from_user.username.lower() in self
-                        )
-                    )
-                )
-        else:
-            return (message.chat
-                    and (message.chat.id in self
-                         or (message.chat.username
-                             and message.chat.username.lower() in self)
-                         or ("me" in self
-                             and message.from_user
-                             and message.from_user.is_self
-                             and not message.outgoing)))
+    async def __call__(self, _, message: Message):
+        return (message.chat
+                and (message.chat.id in self
+                     or (message.chat.username
+                         and message.chat.username.lower() in self)
+                     or ("me" in self
+                         and message.from_user
+                         and message.from_user.is_self
+                         and not message.outgoing)))

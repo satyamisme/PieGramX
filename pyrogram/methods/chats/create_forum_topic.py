@@ -15,6 +15,7 @@
 #
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrofork.  If not, see <http://www.gnu.org/licenses/>.
+
 import pyrogram
 from pyrogram import raw
 from pyrogram import types
@@ -64,4 +65,4 @@ class CreateForumTopic:
             )
         )
 
-        return types.ForumTopicCreated._parse(r.updates[1].message)
+        return types.ForumTopicCreated._parse(r.updates[1].message.action)

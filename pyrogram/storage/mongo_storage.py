@@ -1,10 +1,28 @@
+#  Pyrofork - Telegram MTProto API Client Library for Python
+#  Copyright (C) 2022-present Mayuri-Chan <https://github.com/Mayuri-Chan>
+#
+#  This file is part of Pyrofork.
+#
+#  Pyrofork is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Lesser General Public License as published
+#  by the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  Pyrofork is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with Pyrofork.  If not, see <http://www.gnu.org/licenses/>.
+
 import asyncio
 import inspect
 import time
 from typing import List, Tuple, Any
 
 from .dummy_client import DummyMongoClient
-from pymongo import MongoClient, UpdateOne, DeleteMany
+from pymongo import MongoClient, UpdateOne
 from pyrogram.storage.storage import Storage
 from pyrogram.storage.sqlite_storage import get_input_peer
 
@@ -56,7 +74,6 @@ class MongoStorage(Storage):
         self.database = database
         self._peer = database['peers']
         self._session = database['session']
-        self._usernames = database['usernames']
         self._remove_peers = remove_peers
 
     async def open(self):
@@ -122,32 +139,6 @@ class MongoStorage(Storage):
             bulk
         )
 
-    async def update_usernames(self, usernames: List[Tuple[int, str]]):
-        s = int(time.time())
-        bulk_delete = [
-            DeleteMany(
-                {'peer_id': i[0]}
-            ) for i in usernames
-        ]
-        bulk = [
-            UpdateOne(
-                {'_id': i[1]},
-                {'$set': {
-                    'peer_id': i[0],
-                    'last_update_on': s
-                }},
-                upsert=True
-            ) for i in usernames
-        ]
-        if not bulk:
-            return
-        await self._usernames.bulk_write(
-            bulk_delete
-        )
-        await self._usernames.bulk_write(
-            bulk
-        )
-
     async def get_peer_by_id(self, peer_id: int):
         # id, access_hash, type
         r = await self._peer.find_one({'_id': peer_id}, {'_id': 1, 'access_hash': 1, 'type': 1})
@@ -161,16 +152,7 @@ class MongoStorage(Storage):
                                       {'_id': 1, 'access_hash': 1, 'type': 1, 'last_update_on': 1})
 
         if r is None:
-            r2 = await self._usernames.find_one({'_id': username},
-                                          {'peer_id': 1, 'last_update_on': 1})
-            if r2 is None:
-                raise KeyError(f"Username not found: {username}")
-            if abs(time.time() - r2['last_update_on']) > self.USERNAME_TTL:
-                raise KeyError(f"Username expired: {username}")
-            r = await self._peer.find_one({'_id': r2['peer_id']},
-                                          {'_id': 1, 'access_hash': 1, 'type': 1, 'last_update_on': 1})
-            if r is None:
-                raise KeyError(f"Username not found: {username}")
+            raise KeyError(f"Username not found: {username}")
 
         if abs(time.time() - r['last_update_on']) > self.USERNAME_TTL:
             raise KeyError(f"Username expired: {username}")

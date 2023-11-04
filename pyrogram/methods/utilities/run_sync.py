@@ -1,6 +1,6 @@
 """PyroFork async utils"""
 # Copyright (C) 2020 - 2023  UserbotIndo Team, <https://github.com/userbotindo.git>
-# Copyright (C) 2022-present  Mayuri-Chan, <https://github.com/Mayuri-Chan.git>
+# Copyright (C) 2023  Mayuri-Chan, <https://github.com/Mayuri-Chan.git>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import asyncio
+import functools
 from pyrogram import utils
 from typing import Any, Callable, TypeVar
 

@@ -1,25 +1,25 @@
-#  Pyrofork - Telegram MTProto API Client Library for Python
+#  Pyrogram - Telegram MTProto API Client Library for Python
 #  Copyright (C) 2017-present Dan <https://github.com/delivrance>
-#  Copyright (C) 2022-present Mayuri-Chan <https://github.com/Mayuri-Chan>
 #
-#  This file is part of Pyrofork.
+#  This file is part of Pyrogram.
 #
-#  Pyrofork is free software: you can redistribute it and/or modify
+#  Pyrogram is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU Lesser General Public License as published
 #  by the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  Pyrofork is distributed in the hope that it will be useful,
+#  Pyrogram is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with Pyrofork.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
 import inspect
 import sqlite3
 import time
+from threading import Lock
 from typing import List, Tuple, Any
 
 from pyrogram import raw
@@ -69,25 +69,6 @@ END;
 """
 
 
-UNAME_SCHEMA = """
-CREATE TABLE IF NOT EXISTS usernames
-(
-    id             TEXT PRIMARY KEY,
-    peer_id        INTEGER NOT NULL,
-    last_update_on INTEGER NOT NULL DEFAULT (CAST(STRFTIME('%s', 'now') AS INTEGER))
-);
-
-CREATE TRIGGER IF NOT EXISTS trg_usernames_last_update_on
-    AFTER UPDATE
-    ON usernames
-BEGIN
-    UPDATE usernames
-    SET last_update_on = CAST(STRFTIME('%s', 'now') AS INTEGER)
-    WHERE id = NEW.id;
-END;
-"""
-
-
 def get_input_peer(peer_id: int, access_hash: int, peer_type: str):
     if peer_type in ["user", "bot"]:
         return raw.types.InputPeerUser(
@@ -117,11 +98,11 @@ class SQLiteStorage(Storage):
         super().__init__(name)
 
         self.conn = None  # type: sqlite3.Connection
+        self.lock = Lock()
 
     def create(self):
-        with self.conn:
+        with self.lock, self.conn:
             self.conn.executescript(SCHEMA)
-            self.conn.executescript(UNAME_SCHEMA)
 
             self.conn.execute(
                 "INSERT INTO version VALUES (?)",
@@ -138,33 +119,24 @@ class SQLiteStorage(Storage):
 
     async def save(self):
         await self.date(int(time.time()))
-        self.conn.commit()
+
+        with self.lock:
+            self.conn.commit()
 
     async def close(self):
-        self.conn.close()
+        with self.lock:
+            self.conn.close()
 
     async def delete(self):
         raise NotImplementedError
 
     async def update_peers(self, peers: List[Tuple[int, int, str, str, str]]):
-        self.conn.executemany(
-            "REPLACE INTO peers (id, access_hash, type, username, phone_number)"
-            "VALUES (?, ?, ?, ?, ?)",
-            peers
-        )
-
-    async def update_usernames(self, usernames: List[Tuple[int, str]]):
-        self.conn.executescript(UNAME_SCHEMA)
-        for user in usernames:
-            self.conn.execute(
-                "DELETE FROM usernames WHERE peer_id=?",
-                (user[0],)
+        with self.lock:
+            self.conn.executemany(
+                "REPLACE INTO peers (id, access_hash, type, username, phone_number)"
+                "VALUES (?, ?, ?, ?, ?)",
+                peers
             )
-        self.conn.executemany(
-            "REPLACE INTO usernames (peer_id, id)"
-            "VALUES (?, ?)",
-            usernames
-        )
 
     async def get_peer_by_id(self, peer_id: int):
         r = self.conn.execute(
@@ -185,22 +157,7 @@ class SQLiteStorage(Storage):
         ).fetchone()
 
         if r is None:
-            r2 = self.conn.execute(
-                "SELECT peer_id, last_update_on FROM usernames WHERE id = ?"
-                "ORDER BY last_update_on DESC",
-                (username,)
-            ).fetchone()
-            if r2 is None:
-                raise KeyError(f"Username not found: {username}")
-            if abs(time.time() - r2[1]) > self.USERNAME_TTL:
-                raise KeyError(f"Username expired: {username}")
-            r = r = self.conn.execute(
-                "SELECT id, access_hash, type, last_update_on FROM peers WHERE id = ?"
-                "ORDER BY last_update_on DESC",
-                (r2[0],)
-            ).fetchone()
-            if r is None:
-                raise KeyError(f"Username not found: {username}")
+            raise KeyError(f"Username not found: {username}")
 
         if abs(time.time() - r[3]) > self.USERNAME_TTL:
             raise KeyError(f"Username expired: {username}")
@@ -228,7 +185,7 @@ class SQLiteStorage(Storage):
     def _set(self, value: Any):
         attr = inspect.stack()[2].function
 
-        with self.conn:
+        with self.lock, self.conn:
             self.conn.execute(
                 f"UPDATE sessions SET {attr} = ?",
                 (value,)
@@ -264,7 +221,7 @@ class SQLiteStorage(Storage):
                 "SELECT number FROM version"
             ).fetchone()[0]
         else:
-            with self.conn:
+            with self.lock, self.conn:
                 self.conn.execute(
                     "UPDATE version SET number = ?",
                     (value,)

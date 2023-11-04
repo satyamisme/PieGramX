@@ -1,20 +1,21 @@
-#  Pyrogram - Telegram MTProto API Client Library for Python
+#  PyroFork - Telegram MTProto API Client Library for Python
 #  Copyright (C) 2017-present Dan <https://github.com/delivrance>
+#  Copyright (C) 2023 wulan17 <https://github.com/wulan17>
 #
-#  This file is part of Pyrogram.
+#  This file is part of PyroFork.
 #
-#  Pyrogram is free software: you can redistribute it and/or modify
+#  PyroFork is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU Lesser General Public License as published
 #  by the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  Pyrogram is distributed in the hope that it will be useful,
+#  PyroFork is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
+#  along with PyroFork.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
 from sys import argv
@@ -74,7 +75,6 @@ setup(
     keywords="telegram chat messenger mtproto api client library python",
     project_urls={
         "Tracker": "https://github.com/Mayuri-Chan/pyrofork/issues",
-        "Community": "https://t.me/MayuriChan_Chat",
         "Source": "https://github.com/Mayuri-Chan/pyrofork",
         "Documentation": "https://pyrofork.mayuri.my.id",
     },

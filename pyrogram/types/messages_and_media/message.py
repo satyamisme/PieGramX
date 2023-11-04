@@ -1,21 +1,20 @@
-#  Pyrofork - Telegram MTProto API Client Library for Python
+#  Pyrogram - Telegram MTProto API Client Library for Python
 #  Copyright (C) 2017-present Dan <https://github.com/delivrance>
-#  Copyright (C) 2022-present Mayuri-Chan <https://github.com/Mayuri-Chan>
 #
-#  This file is part of Pyrofork.
+#  This file is part of Pyrogram.
 #
-#  Pyrofork is free software: you can redistribute it and/or modify
+#  Pyrogram is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU Lesser General Public License as published
 #  by the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  Pyrofork is distributed in the hope that it will be useful,
+#  Pyrogram is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with Pyrofork.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
 from datetime import datetime
@@ -111,21 +110,12 @@ class Message(Object, Update):
         reply_to_message_id (``int``, *optional*):
             The id of the message which this message directly replied to.
 
-        reply_to_story_id (``int``, *optional*):
-            The id of the story which this message directly replied to.
-
-        reply_to_story_user_id (``int``, *optional*):
-            The id of the story sender which this message directly replied to.
-
         reply_to_top_message_id (``int``, *optional*):
             The id of the first message which started this message thread.
 
         reply_to_message (:obj:`~pyrogram.types.Message`, *optional*):
             For replies, the original message. Note that the Message object in this field will not contain
             further reply_to_message fields even if it itself is a reply.
-
-        reply_to_story (:obj:`~pyrogram.types.Story`, *optional*):
-            For replies, the original story.
 
         mentioned (``bool``, *optional*):
             The message contains a mention.
@@ -191,9 +181,6 @@ class Message(Object, Update):
         game (:obj:`~pyrogram.types.Game`, *optional*):
             Message is a game, information about the game.
 
-        story (:obj:`~pyrogram.types.MessageStory`, *optional*):
-            Message is a forwarded story, information about the forwarded story.
-
         video (:obj:`~pyrogram.types.Video`, *optional*):
             Message is a video, information about the video.
 
@@ -202,9 +189,6 @@ class Message(Object, Update):
 
         video_note (:obj:`~pyrogram.types.VideoNote`, *optional*):
             Message is a video note, information about the video message.
-
-        web_page_preview (:obj:`pyrogram.types.WebPagePreview`, *optional*):
-            Message is a web page preview, information about the web page preview message.
 
         caption (``str``, *optional*):
             Caption for the audio, document, photo, video or voice, 0-1024 characters.
@@ -220,6 +204,9 @@ class Message(Object, Update):
 
         venue (:obj:`~pyrogram.types.Venue`, *optional*):
             Message is a venue, information about the venue.
+
+        web_page (:obj:`~pyrogram.types.WebPage`, *optional*):
+            Message was sent with a webpage preview.
 
         poll (:obj:`~pyrogram.types.Poll`, *optional*):
             Message is a native poll, information about the poll.
@@ -377,11 +364,8 @@ class Message(Object, Update):
         forward_date: datetime = None,
         is_topic_message: bool = None,
         reply_to_message_id: int = None,
-        reply_to_story_id: int = None,
-        reply_to_story_user_id: int = None,
         reply_to_top_message_id: int = None,
         reply_to_message: "Message" = None,
-        reply_to_story: "types.Story" = None,
         mentioned: bool = None,
         empty: bool = None,
         service: "enums.MessageServiceType" = None,
@@ -402,15 +386,14 @@ class Message(Object, Update):
         sticker: "types.Sticker" = None,
         animation: "types.Animation" = None,
         game: "types.Game" = None,
-        story: "types.MessageStory" = None,
         video: "types.Video" = None,
         voice: "types.Voice" = None,
         video_note: "types.VideoNote" = None,
-        web_page_preview: "types.WebPagePreview" = None,
         caption: Str = None,
         contact: "types.Contact" = None,
         location: "types.Location" = None,
         venue: "types.Venue" = None,
+        web_page: "types.WebPage" = None,
         poll: "types.Poll" = None,
         dice: "types.Dice" = None,
         new_chat_members: List["types.User"] = None,
@@ -470,11 +453,8 @@ class Message(Object, Update):
         self.forward_date = forward_date
         self.is_topic_message = is_topic_message
         self.reply_to_message_id = reply_to_message_id
-        self.reply_to_story_id = reply_to_story_id
-        self.reply_to_story_user_id = reply_to_story_user_id
         self.reply_to_top_message_id = reply_to_top_message_id
         self.reply_to_message = reply_to_message
-        self.reply_to_story = reply_to_story
         self.mentioned = mentioned
         self.empty = empty
         self.service = service
@@ -495,15 +475,14 @@ class Message(Object, Update):
         self.sticker = sticker
         self.animation = animation
         self.game = game
-        self.story = story
         self.video = video
         self.voice = voice
         self.video_note = video_note
-        self.web_page_preview = web_page_preview
         self.caption = caption
         self.contact = contact
         self.location = location
         self.venue = venue
+        self.web_page = web_page
         self.poll = poll
         self.dice = dice
         self.new_chat_members = new_chat_members
@@ -640,16 +619,16 @@ class Message(Object, Update):
                 service_type = enums.MessageServiceType.NEW_CHAT_PHOTO
             elif isinstance(action, raw.types.MessageActionRequestedPeer):
                 if isinstance(action.peer, raw.types.PeerChannel):
-                    channel_shared = utils.get_channel_id(utils.get_raw_peer_id(action.peer))
+                    channel_shared = int(f"-100{action.peer.channel_id}")
                     service_type = enums.MessageServiceType.ChannelShared
                 elif isinstance(action.peer, raw.types.PeerChat):
-                    channel_shared = utils.get_channel_id(utils.get_raw_peer_id(action.peer))
+                    channel_shared = int(f"-100{action.peer.chat_id}")
                     service_type = enums.MessageServiceType.ChannelShared
                 elif isinstance(action.peer, raw.types.PeerUser):
                     user_shared = action.peer.user_id
                     service_type = enums.MessageServiceType.UserShared
             elif isinstance(action, raw.types.MessageActionTopicCreate):
-                forum_topic_created = types.ForumTopicCreated._parse(message)
+                forum_topic_created = types.ForumTopicCreated._parse(action)
                 service_type = enums.MessageServiceType.FORUM_TOPIC_CREATED
             elif isinstance(action, raw.types.MessageActionTopicEdit):
                 if action.title:
@@ -662,7 +641,7 @@ class Message(Object, Update):
                     forum_topic_closed = types.ForumTopicClosed()
                     service_type = enums.MessageServiceType.FORUM_TOPIC_CLOSED
                 else:
-                    if hasattr(action, "hidden") and action.hidden is not None:
+                    if hasattr(action, "hidden"):
                         general_topic_unhidden = types.GeneralTopicUnhidden()
                         service_type = enums.MessageServiceType.GENERAL_TOPIC_UNHIDDEN
                     else:
@@ -800,15 +779,14 @@ class Message(Object, Update):
             contact = None
             venue = None
             game = None
-            story = None
             audio = None
             voice = None
             animation = None
             video = None
             video_note = None
-            web_page_preview = None
             sticker = None
             document = None
+            web_page = None
             poll = None
             dice = None
 
@@ -833,9 +811,6 @@ class Message(Object, Update):
                 elif isinstance(media, raw.types.MessageMediaGame):
                     game = types.Game._parse(client, message)
                     media_type = enums.MessageMediaType.GAME
-                elif isinstance(media, raw.types.MessageMediaStory):
-                    story = types.MessageStory._parse(media)
-                    media_type = enums.MessageMediaType.STORY
                 elif isinstance(media, raw.types.MessageMediaDocument):
                     doc = media.document
 
@@ -879,9 +854,9 @@ class Message(Object, Update):
                             document = types.Document._parse(client, doc, file_name)
                             media_type = enums.MessageMediaType.DOCUMENT
                 elif isinstance(media, raw.types.MessageMediaWebPage):
-                    if isinstance(media.webpage, Union[raw.types.WebPage, raw.types.WebPageEmpty]):
-                        web_page_preview = types.WebPagePreview._parse(client, media, message.invert_media)
-                        media_type = enums.MessageMediaType.WEB_PAGE_PREVIEW
+                    if isinstance(media.webpage, raw.types.WebPage):
+                        web_page = types.WebPage._parse(client, media.webpage)
+                        media_type = enums.MessageMediaType.WEB_PAGE
                     else:
                         media = None
                 elif isinstance(media, raw.types.MessageMediaPoll):
@@ -922,22 +897,22 @@ class Message(Object, Update):
                 sender_chat=sender_chat,
                 text=(
                     Str(message.message).init(entities) or None
-                    if media is None
+                    if media is None or web_page is not None
                     else None
                 ),
                 caption=(
                     Str(message.message).init(entities) or None
-                    if media is not None
+                    if media is not None and web_page is None
                     else None
                 ),
                 entities=(
                     entities or None
-                    if media is None
+                    if media is None or web_page is not None
                     else None
                 ),
                 caption_entities=(
                     entities or None
-                    if media is not None
+                    if media is not None and web_page is None
                     else None
                 ),
                 author_signature=message.post_author,
@@ -964,12 +939,11 @@ class Message(Object, Update):
                 voice=voice,
                 animation=animation,
                 game=game,
-                story=story,
                 video=video,
                 video_note=video_note,
-                web_page_preview=web_page_preview,
                 sticker=sticker,
                 document=document,
+                web_page=web_page,
                 poll=poll,
                 dice=dice,
                 views=message.views,
@@ -982,57 +956,42 @@ class Message(Object, Update):
             )
 
             if message.reply_to:
-                if isinstance(message.reply_to, raw.types.MessageReplyHeader):
-                    if message.reply_to.forum_topic:
-                        if message.reply_to.reply_to_top_id:
-                            thread_id = message.reply_to.reply_to_top_id
-                            parsed_message.reply_to_message_id = message.reply_to.reply_to_msg_id
-                        else:
-                            thread_id = message.reply_to.reply_to_msg_id
-                        parsed_message.message_thread_id = thread_id
-                        parsed_message.is_topic_message = True
-                        if topics:
-                            parsed_message.topics = types.ForumTopic._parse(topics[thread_id])
-                        else:
-                            try:
-                                msg = await client.get_messages(parsed_message.chat.id,message.id)
-                                if getattr(msg, "topics"):
-                                    parsed_message.topics = msg.topics
-                            except Exception:
-                                pass
-                    else:
+                if message.reply_to.forum_topic:
+                    if message.reply_to.reply_to_top_id:
+                        thread_id = message.reply_to.reply_to_top_id
                         parsed_message.reply_to_message_id = message.reply_to.reply_to_msg_id
-                        parsed_message.reply_to_top_message_id = message.reply_to.reply_to_top_id
-                else:
-                    parsed_message.reply_to_story_id = message.reply_to.story_id
-                    parsed_message.reply_to_story_user_id = message.reply_to.user_id
-
-                if replies:
-                    if parsed_message.reply_to_message_id:
+                    else:
+                        thread_id = message.reply_to.reply_to_msg_id
+                    parsed_message.message_thread_id = thread_id
+                    parsed_message.is_topic_message = True
+                    if topics:
+                        parsed_message.topics = types.ForumTopic._parse(topics[thread_id])
+                    else:
                         try:
-                            key = (parsed_message.chat.id, parsed_message.reply_to_message_id)
-                            reply_to_message = client.message_cache[key]
-
-                            if not reply_to_message:
-                                reply_to_message = await client.get_messages(
-                                    parsed_message.chat.id,
-                                    reply_to_message_ids=message.id,
-                                    replies=replies - 1
-                                )
-                            if reply_to_message and not reply_to_message.forum_topic_created:
-                                parsed_message.reply_to_message = reply_to_message
-                        except MessageIdsEmpty:
-                            pass
-                    elif parsed_message.reply_to_story_id:
-                        try:
-                            reply_to_story = await client.get_stories(
-                                parsed_message.reply_to_story_user_id,
-                                parsed_message.reply_to_story_id
-                            )
+                            msg = await client.get_messages(parsed_message.chat.id,message.id)
+                            if getattr(msg, "topics"):
+                                parsed_message.topics = msg.topics
                         except Exception:
                             pass
-                        else:
-                            parsed_message.reply_to_story = reply_to_story
+                else:
+                    parsed_message.reply_to_message_id = message.reply_to.reply_to_msg_id
+                    parsed_message.reply_to_top_message_id = message.reply_to.reply_to_top_id
+
+                if replies:
+                    try:
+                        key = (parsed_message.chat.id, parsed_message.reply_to_message_id)
+                        reply_to_message = client.message_cache[key]
+
+                        if not reply_to_message:
+                            reply_to_message = await client.get_messages(
+                                parsed_message.chat.id,
+                                reply_to_message_ids=message.id,
+                                replies=replies - 1
+                            )
+                        if reply_to_message and not reply_to_message.forum_topic_created:
+                            parsed_message.reply_to_message = reply_to_message
+                    except MessageIdsEmpty:
+                        pass
 
             if not parsed_message.poll:  # Do not cache poll messages
                 client.message_cache[(parsed_message.chat.id, parsed_message.id)] = parsed_message
@@ -1087,7 +1046,6 @@ class Message(Object, Update):
         disable_web_page_preview: bool = None,
         disable_notification: bool = None,
         reply_to_message_id: int = None,
-        quote_text: str = None,
         schedule_date: datetime = None,
         protect_content: bool = None,
         reply_markup=None
@@ -1137,10 +1095,6 @@ class Message(Object, Update):
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
             schedule_date (:py:obj:`~datetime.datetime`, *optional*):
                 Date when the message will be automatically sent.
 
@@ -1157,7 +1111,6 @@ class Message(Object, Update):
         Raises:
             RPCError: In case of a Telegram RPC error.
         """
-
         if quote is None:
             quote = self.chat.type != enums.ChatType.PRIVATE
 
@@ -1177,7 +1130,6 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
             schedule_date=schedule_date,
             protect_content=protect_content,
             reply_markup=reply_markup
@@ -1206,7 +1158,6 @@ class Message(Object, Update):
             "types.ForceReply"
         ] = None,
         reply_to_message_id: int = None,
-        quote_text: str = None,
         progress: Callable = None,
         progress_args: tuple = ()
     ) -> "Message":
@@ -1277,10 +1228,6 @@ class Message(Object, Update):
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -1340,7 +1287,6 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
@@ -1360,7 +1306,6 @@ class Message(Object, Update):
         file_name: str = None,
         disable_notification: bool = None,
         reply_to_message_id: int = None,
-        quote_text: str = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -1434,10 +1379,6 @@ class Message(Object, Update):
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -1496,7 +1437,6 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
@@ -1511,7 +1451,6 @@ class Message(Object, Update):
         caption_entities: List["types.MessageEntity"] = None,
         disable_notification: bool = None,
         reply_to_message_id: int = None,
-        quote_text: str = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -1562,10 +1501,6 @@ class Message(Object, Update):
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -1595,7 +1530,6 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
             reply_markup=reply_markup
         )
 
@@ -1645,7 +1579,6 @@ class Message(Object, Update):
         vcard: str = "",
         disable_notification: bool = None,
         reply_to_message_id: int = None,
-        quote_text: str = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -1695,10 +1628,6 @@ class Message(Object, Update):
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -1728,7 +1657,6 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
             reply_markup=reply_markup
         )
 
@@ -1744,7 +1672,6 @@ class Message(Object, Update):
         force_document: bool = None,
         disable_notification: bool = None,
         reply_to_message_id: int = None,
-        quote_text: str = None,
         schedule_date: datetime = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
@@ -1814,10 +1741,6 @@ class Message(Object, Update):
 
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
-
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
             
             schedule_date (:py:obj:`~datetime.datetime`, *optional*):
                 Date when the message will be automatically sent.
@@ -1878,7 +1801,6 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
             schedule_date=schedule_date,
             reply_markup=reply_markup,
             progress=progress,
@@ -1965,8 +1887,7 @@ class Message(Object, Update):
         result_id: str,
         quote: bool = None,
         disable_notification: bool = None,
-        reply_to_message_id: int = None,
-        quote_text: str = None
+        reply_to_message_id: int = None
     ) -> "Message":
         """Bound method *reply_inline_bot_result* of :obj:`~pyrogram.types.Message`.
 
@@ -2004,10 +1925,6 @@ class Message(Object, Update):
             reply_to_message_id (``bool``, *optional*):
                 If the message is a reply, ID of the original message.
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
         Returns:
             On success, the sent Message is returned.
 
@@ -2030,8 +1947,7 @@ class Message(Object, Update):
             result_id=result_id,
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
-            reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text
+            reply_to_message_id=reply_to_message_id
         )
 
     async def reply_location(
@@ -2041,7 +1957,6 @@ class Message(Object, Update):
         quote: bool = None,
         disable_notification: bool = None,
         reply_to_message_id: int = None,
-        quote_text: str = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -2085,10 +2000,6 @@ class Message(Object, Update):
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -2116,7 +2027,6 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
             reply_markup=reply_markup
         )
 
@@ -2130,8 +2040,7 @@ class Message(Object, Update):
         ]],
         quote: bool = None,
         disable_notification: bool = None,
-        reply_to_message_id: int = None,
-        quote_text: str = None
+        reply_to_message_id: int = None
     ) -> List["types.Message"]:
         """Bound method *reply_media_group* of :obj:`~pyrogram.types.Message`.
 
@@ -2167,10 +2076,6 @@ class Message(Object, Update):
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
         Returns:
             On success, a :obj:`~pyrogram.types.Messages` object is returned containing all the
             single messages sent.
@@ -2193,8 +2098,7 @@ class Message(Object, Update):
             media=media,
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
-            reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text
+            reply_to_message_id=reply_to_message_id
         )
 
     async def reply_photo(
@@ -2208,7 +2112,6 @@ class Message(Object, Update):
         ttl_seconds: int = None,
         disable_notification: bool = None,
         reply_to_message_id: int = None,
-        quote_text: str = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -2271,10 +2174,6 @@ class Message(Object, Update):
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -2330,7 +2229,6 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
@@ -2354,7 +2252,6 @@ class Message(Object, Update):
         disable_notification: bool = None,
         protect_content: bool = None,
         reply_to_message_id: int = None,
-        quote_text: str = None,
         schedule_date: datetime = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
@@ -2442,10 +2339,6 @@ class Message(Object, Update):
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
             schedule_date (:py:obj:`~datetime.datetime`, *optional*):
                 Date when the message will be automatically sent.
 
@@ -2487,7 +2380,6 @@ class Message(Object, Update):
             protect_content=protect_content,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
             schedule_date=schedule_date,
             reply_markup=reply_markup
         )
@@ -2498,7 +2390,6 @@ class Message(Object, Update):
         quote: bool = None,
         disable_notification: bool = None,
         reply_to_message_id: int = None,
-        quote_text: str = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -2542,10 +2433,6 @@ class Message(Object, Update):
 
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
-
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
 
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
@@ -2597,7 +2484,6 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
@@ -2614,7 +2500,6 @@ class Message(Object, Update):
         foursquare_type: str = "",
         disable_notification: bool = None,
         reply_to_message_id: int = None,
-        quote_text: str = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -2673,10 +2558,6 @@ class Message(Object, Update):
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -2708,7 +2589,6 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
             reply_markup=reply_markup
         )
 
@@ -2729,7 +2609,6 @@ class Message(Object, Update):
         supports_streaming: bool = True,
         disable_notification: bool = None,
         reply_to_message_id: int = None,
-        quote_text: str = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -2814,10 +2693,6 @@ class Message(Object, Update):
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -2879,7 +2754,6 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
@@ -2894,7 +2768,6 @@ class Message(Object, Update):
         thumb: Union[str, BinaryIO] = None,
         disable_notification: bool = None,
         reply_to_message_id: int = None,
-        quote_text: str = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -2951,10 +2824,6 @@ class Message(Object, Update):
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -3008,7 +2877,6 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
@@ -3024,7 +2892,6 @@ class Message(Object, Update):
         duration: int = 0,
         disable_notification: bool = None,
         reply_to_message_id: int = None,
-        quote_text: str = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
             "types.ReplyKeyboardMarkup",
@@ -3082,10 +2949,6 @@ class Message(Object, Update):
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
                 Additional interface options. An object for an inline keyboard, custom reply keyboard,
                 instructions to remove reply keyboard or to force a reply from the user.
@@ -3140,122 +3003,9 @@ class Message(Object, Update):
             disable_notification=disable_notification,
             message_thread_id=message_thread_id,
             reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
             reply_markup=reply_markup,
             progress=progress,
             progress_args=progress_args
-        )
-    async def reply_web_page(
-        self,
-        url: str,
-        text: str = "",
-        quote: bool = None,
-        parse_mode: Optional["enums.ParseMode"] = None,
-        entities: List["types.MessageEntity"] = None,
-        large_media: bool = None,
-        invert_media: bool = None,
-        disable_notification: bool = None,
-        reply_to_message_id: int = None,
-        quote_text: str = None,
-        schedule_date: datetime = None,
-        protect_content: bool = None,
-        reply_markup=None
-    ) -> "Message":
-        """Bound method *reply_web_page* of :obj:`~pyrogram.types.Message`.
-
-        Use as a shortcut for:
-
-        .. code-block:: python
-
-            await client.send_web_page(
-                chat_id=message.chat.id,
-                url="https://github.com/Mayuri-Chan/pyrofork",
-                reply_to_message_id=message.id
-            )
-
-        Example:
-            .. code-block:: python
-
-                await message.reply_web_page("https://github.com/Mayuri-Chan/pyrofork")
-
-        Parameters:
-            url (``str``):
-                Link that will be previewed.
-
-            text (``str``):
-                Text of the message to be sent.
-
-            quote (``bool``, *optional*):
-                If ``True``, the message will be sent as a reply to this message.
-                If *reply_to_message_id* is passed, this parameter will be ignored.
-                Defaults to ``True`` in group chats and ``False`` in private chats.
-
-            parse_mode (:obj:`~pyrogram.enums.ParseMode`, *optional*):
-                By default, texts are parsed using both Markdown and HTML styles.
-                You can combine both syntaxes together.
-
-            entities (List of :obj:`~pyrogram.types.MessageEntity`):
-                List of special entities that appear in message text, which can be specified instead of *parse_mode*.
-
-            large_media (``bool``, *optional*):
-                Make web page preview image larger.
-
-            invert_media (``bool``, *optional*):
-                Move web page preview to above the message.
-
-            disable_notification (``bool``, *optional*):
-                Sends the message silently.
-                Users will receive a notification with no sound.
-
-            reply_to_message_id (``int``, *optional*):
-                If the message is a reply, ID of the original message.
-
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
-            schedule_date (:py:obj:`~datetime.datetime`, *optional*):
-                Date when the message will be automatically sent.
-
-            protect_content (``bool``, *optional*):
-                Protects the contents of the sent message from forwarding and saving.
-
-            reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardMarkup` | :obj:`~pyrogram.types.ReplyKeyboardRemove` | :obj:`~pyrogram.types.ForceReply`, *optional*):
-                Additional interface options. An object for an inline keyboard, custom reply keyboard,
-                instructions to remove reply keyboard or to force a reply from the user.
-
-        Returns:
-            On success, the sent Message is returned.
-
-        Raises:
-            RPCError: In case of a Telegram RPC error.
-        """
-
-        if quote is None:
-            quote = self.chat.type != enums.ChatType.PRIVATE
-
-        if reply_to_message_id is None and quote:
-            reply_to_message_id = self.id
-
-        message_thread_id = None
-        if self.message_thread_id:
-            message_thread_id = self.message_thread_id
-
-        return await self._client.send_web_page(
-            chat_id=self.chat.id,
-            url=url,
-            text=text,
-            parse_mode=parse_mode,
-            entities=entities,
-            large_media=large_media,
-            invert_media=invert_media,
-            disable_notification=disable_notification,
-            message_thread_id=message_thread_id,
-            reply_to_message_id=reply_to_message_id,
-            quote_text=quote_text,
-            schedule_date=schedule_date,
-            protect_content=protect_content,
-            reply_markup=reply_markup
         )
 
     async def edit_text(
@@ -3524,7 +3274,6 @@ class Message(Object, Update):
         has_spoiler: bool = None,
         disable_notification: bool = None,
         message_thread_id: int = None,
-        quote_text: str = None,
         reply_to_message_id: int = None,
         schedule_date: datetime = None,
         protect_content: bool = None,
@@ -3581,10 +3330,6 @@ class Message(Object, Update):
                 Unique identifier for the target message thread (topic) of the forum.
                 for forum supergroups only.
 
-            quote_text (``str``, *optional*):
-                Text to quote.
-                for reply_to_message only.
-
             reply_to_message_id (``int``, *optional*):
                 If the message is a reply, ID of the original message.
 
@@ -3607,24 +3352,23 @@ class Message(Object, Update):
             RPCError: In case of a Telegram RPC error.
         """
         if self.service:
-            log.warning("Service messages cannot be copied. chat_id: %s, message_id: %s",
-                        self.chat.id, self.id)
+            log.warning(f"Service messages cannot be copied. "
+                        f"chat_id: {self.chat.id}, message_id: {self.id}")
         elif self.game and not await self._client.storage.is_bot():
-            log.warning("Users cannot send messages with Game media type. chat_id: %s, message_id: %s",
-                        self.chat.id, self.id)
+            log.warning(f"Users cannot send messages with Game media type. "
+                        f"chat_id: {self.chat.id}, message_id: {self.id}")
         elif self.empty:
-            log.warning("Empty messages cannot be copied.")
+            log.warning(f"Empty messages cannot be copied. ")
         elif self.text:
             return await self._client.send_message(
                 chat_id,
                 text=self.text,
                 entities=self.entities,
                 parse_mode=enums.ParseMode.DISABLED,
-                disable_web_page_preview=not self.web_page_preview,
+                disable_web_page_preview=not self.web_page,
                 disable_notification=disable_notification,
                 message_thread_id=message_thread_id,
                 reply_to_message_id=reply_to_message_id,
-                quote_text=quote_text,
                 schedule_date=schedule_date,
                 protect_content=protect_content,
                 reply_markup=self.reply_markup if reply_markup is object else reply_markup
@@ -3706,23 +3450,6 @@ class Message(Object, Update):
                     game_short_name=self.game.short_name,
                     disable_notification=disable_notification,
                     message_thread_id=message_thread_id
-                )
-            elif self.web_page_preview:
-                return await self._client.send_web_page(
-                    chat_id,
-                    url=self.web_page_preview.webpage.url,
-                    text=self.caption,
-                    entities=self.entities,
-                    parse_mode=enums.ParseMode.DISABLED,
-                    large_media=self.web_page_preview.force_large_media,
-                    invert_media=self.web_page_preview.invert_media,
-                    disable_notification=disable_notification,
-                    message_thread_id=message_thread_id,
-                    reply_to_message_id=reply_to_message_id,
-                    quote_text=quote_text,
-                    schedule_date=schedule_date,
-                    protect_content=protect_content,
-                    reply_markup=self.reply_markup if reply_markup is object else reply_markup
                 )
             else:
                 raise ValueError("Unknown media type")
